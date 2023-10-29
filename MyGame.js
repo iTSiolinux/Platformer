@@ -117,14 +117,16 @@
                 }
 
                 this.move = () => {
+                    const playerSpeed = 5;
+                    const { x, y } = player.velocity;
                     if (playerProperties.bools.movement.up){
-                        
+                        Body.setVelocity(playerNode.body, { x, y: -playerSpeed * 2 });
                     }
                     if (playerProperties.bools.movement.right){
-                    
+                        Body.setVelocity(playerNode.body, { x: playerSpeed, y });
                     }
                     if (playerProperties.bools.movement.left){
-
+                        Body.setVelocity(playerNode.body, { x: -playerSpeed, y });
                     }
                     updateCamera()
                 }
@@ -136,6 +138,31 @@
                 playerNode = this;
             }
         }
+
+
+
+    Events.on(playerNode, 'collisionStart', function (event) {
+      const pairs = event.pairs;
+
+      for (let i = 0; i < pairs.length; i++) {
+        const pair = pairs[i];
+
+        // Check if the "player" body is involved in the collision
+        if (pair.bodyA === playerNode.body) {
+          const otherBody = pair.bodyB; // Get the other body involved in the collision
+          playerCollidedWith(otherBody);
+        } else if (pair.bodyB === playerNode.body) {
+          const otherBody = pair.bodyA; // Get the other body involved in the collision
+          playerCollidedWith(otherBody);
+        }
+      }
+    });
+
+    function playerCollidedWith(otherBody) {
+      if (playerNode.body.position.y < otherBody.position.y){
+        playerProperties.onGround = true; // Player is on the ground
+      }
+    }
 
         Render.run(render);
         Runner.run(runner, engine);
