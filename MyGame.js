@@ -1,4 +1,5 @@
         const Engine = Matter.Engine,
+            Events = Matter.Events,
             Render = Matter.Render,
             Runner = Matter.Runner,
             Bodies = Matter.Bodies,
