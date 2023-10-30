@@ -11,10 +11,12 @@ var width = window.innerWidth,
 height = window.innerHeight,
 scale = 10;
 
+var currentSound = null
 
-var sound = new Howl({
-    src: ['', 'http://dm0qx8t0i9gc9.cloudfront.net/previews/audio/HNxwBHlArk43bm5tw/audioblocks-randon-nelson_pop_island-fever-full-120bpm-c_HgYts3S9n_NWM.mp3']
-  });
+var bgMusic = new Howl({
+    src: ['', 'http://dm0qx8t0i9gc9.cloudfront.net/previews/audio/HNxwBHlArk43bm5tw/audioblocks-randon-nelson_pop_island-fever-full-120bpm-c_HgYts3S9n_NWM.mp3'],
+    volume: 0.9
+});
 
 const engine = Engine.create();
 const runner = Runner.create();
@@ -84,6 +86,7 @@ function updateCamera(){
 function resizeWindow() {
     width = window.innerWidth,
     height = window.innerHeight;
+    
     render.options.width = width;
     render.options.height = height
 }
@@ -184,7 +187,10 @@ function playerCollidedWith(otherBody) {
 Render.run(render);
 Runner.run(runner, engine);
 setInterval(loop, 10)
-setTimeout(() => {new Player();sound.play()}, window.onload)
+setTimeout(() => {
+    new Player();
+    currentSound = bgMusic.play()
+}, window.onload)
 
 // events handlers:
 window.addEventListener("resize", resizeWindow)
