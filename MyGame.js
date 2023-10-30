@@ -11,8 +11,11 @@ var width = window.innerWidth,
 height = window.innerHeight,
 scale = 10;
 
-const backgroundMusic = document.getElementById("bgMusic");
-// https://dm0qx8t0i9gc9.cloudfront.net/previews/audio/HNxwBHlArk43bm5tw/audioblocks-randon-nelson_pop_island-fever-full-120bpm-c_HgYts3S9n_NWM.mp3
+
+var sound = new Howl({
+    src: ['', 'http://dm0qx8t0i9gc9.cloudfront.net/previews/audio/HNxwBHlArk43bm5tw/audioblocks-randon-nelson_pop_island-fever-full-120bpm-c_HgYts3S9n_NWM.mp3']
+  });
+
 const engine = Engine.create();
 const runner = Runner.create();
 
@@ -181,11 +184,8 @@ function playerCollidedWith(otherBody) {
 Render.run(render);
 Runner.run(runner, engine);
 setInterval(loop, 10)
-setTimeout(() => {new Player()}, window.onload)
+setTimeout(() => {new Player();sound.play()}, window.onload)
 
-backgroundMusic.addEventListener("canplaythrough", () => {
-    backgroundMusic.play();
-});
 // events handlers:
 window.addEventListener("resize", resizeWindow)
 window.addEventListener("keydown",(e) => {keySetBoolean(e, true)})
