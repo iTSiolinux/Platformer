@@ -11,7 +11,8 @@ var width = window.innerWidth,
 height = window.innerHeight,
 scale = 10;
 
-
+const backgroundMusic = document.getElementById("bgMusic");
+// https://dm0qx8t0i9gc9.cloudfront.net/previews/audio/HNxwBHlArk43bm5tw/audioblocks-randon-nelson_pop_island-fever-full-120bpm-c_HgYts3S9n_NWM.mp3
 const engine = Engine.create();
 const runner = Runner.create();
 
@@ -29,31 +30,31 @@ options: {
 var playerNode = null
 
 const playerProperties = {
-a : {
-    radius: scale,
-    color: {
-        fill: "red",
-        stroke: "black",
-        strokeWidth: 1
+    a : {
+        radius: scale,
+        color: {
+            fill: "red",
+            stroke: "black",
+            strokeWidth: 1
+        },
+        speed: {
+            x: 3,
+            y: 2
+        }
     },
-    speed: {
-        x: 3,
-        y: 2
-    }
-},
-bools: {
-    movement: {
-        up: false,
-        left: false,    
-        right: false,
-        down: false
+    bools: {
+        movement: {
+            up: false,
+            left: false,    
+            right: false,
+            down: false
+        },
+        camera: {
+            lockX: true,
+            lockY : true
+        }
     },
-    camera: {
-        lockX: true,
-        lockY : true
-    }
-},
-spawnPoint : {x: 0, y: -20}
+    spawnPoint : {x: 0, y: -20}
 }
 
 const ground = Bodies.rectangle(0, 0, 40, 10, { isStatic: true });
@@ -92,16 +93,24 @@ function loop(){
 }
 
 function keySetBoolean(e, fill) {
-    if (e.key === 'w' || e.key === 'ArrowUp') {
-        playerProperties.bools.movement.up = fill;
-    }
-    if (e.key === 'a' || e.key === 'ArrowLeft') {
-        playerProperties.bools.movement.left = fill;
-    }
-    if (e.key === 'd' || e.key === 'ArrowRight') {
-        playerProperties.bools.movement.right = fill;
+    switch (e.key) {
+        case 'w':
+        case 'ArrowUp':
+            playerProperties.bools.movement.up = fill;
+            break;
+        
+        case 'a':
+        case 'ArrowLeft':
+            playerProperties.bools.movement.left = fill;
+            break;
+
+        case 'd':
+        case 'ArrowRight':
+            playerProperties.bools.movement.right = fill;
+            break;
     }
 }
+
 
 
 class Player {
@@ -174,6 +183,9 @@ Runner.run(runner, engine);
 setInterval(loop, 10)
 setTimeout(() => {new Player()}, window.onload)
 
+backgroundMusic.addEventListener("canplaythrough", () => {
+    backgroundMusic.play();
+});
 // events handlers:
 window.addEventListener("resize", resizeWindow)
 window.addEventListener("keydown",(e) => {keySetBoolean(e, true)})
