@@ -13,10 +13,7 @@ scale = 10;
 
 var currentSound = null
 
-var bgMusic = new Howl({
-    src: ['', 'http://dm0qx8t0i9gc9.cloudfront.net/previews/audio/HNxwBHlArk43bm5tw/audioblocks-randon-nelson_pop_island-fever-full-120bpm-c_HgYts3S9n_NWM.mp3'],
-    volume: 0.9
-});
+
 
 const engine = Engine.create();
 const runner = Runner.create();
@@ -34,36 +31,99 @@ options: {
 
 var playerNode = null
 
-const playerProperties = {
-    a : {
-        radius: scale,
-        color: {
-            fill: "red",
-            stroke: "black",
-            strokeWidth: 1
+
+
+
+const GAME = {
+    player: {
+        a: {
+            radius: scale,
+            color: {
+                fill: "red",
+                stroke: "black",
+                strokeWidth: 1
+            },
+            speed: {
+                x: 3,
+                y: 2
+            }
         },
-        speed: {
-            x: 3,
-            y: 2
-        }
-    },
-    bools: {
-        movement: {
-            up: false,
-            left: false,    
-            right: false,
-            down: false
+        bools: {
+            movement: {
+                up: false,
+                left: false,
+                right: false,
+                down: false
+            },
+            camera: {
+                lockX: true,
+                lockY: true
+            }
         },
-        camera: {
-            lockX: true,
-            lockY : true
-        }
+        spawnPoint: { x: 0, y: -20 }
     },
-    spawnPoint : {x: 0, y: -20}
+    bgMusic: {
+        src: "http://dm0qx8t0i9gc9.cloudfront.net/previews/audio/HNxwBHlArk43bm5tw/audioblocks-randon-nelson_pop_island-fever-full-120bpm-c_HgYts3S9n_NWM.mp3",
+        volume: 1
+    }
 }
 
-const ground = Bodies.rectangle(0, 0, 40, 10, { isStatic: true });
-Composite.add(engine.world, ground);
+var bgMusic = new Howl({
+    src: [GAME.bgMusic.src],
+    volume: GAME.bgMusic.volume
+});
+
+const default_map = {
+    blocks: [
+        {
+            id: 1,
+            isStatic: true,
+            render: {
+                fillStyle: 'green',
+                strokeStyle: 'brown',
+                lineWidth: 1,
+            },
+            scale: {width: 40, height: 10}
+        },
+    ],
+    platforms: [
+        { id: 1, label: null, type: 'rect', x: 0, y: 0 },
+        { id: 1, label: null, type: 'rect', x: 80, y: 0 },
+    ],
+};
+
+function loadMap(map) {
+    const blocks = map.blocks;
+    const platforms = map.platforms;
+    const bodies = []; 
+
+    platforms.forEach((plat) => {
+        if (plat.type === 'rect') {
+            const block = blocks.find((block) => block.id === plat.id);
+
+            if (block) {
+                const obj = Bodies.rectangle(
+                    plat.x,
+                    plat.y,
+                    block.scale.width,
+                    block.scale.height,
+                    {
+                        isStatic: block.isStatic,
+                        render: block.render,
+                    }
+                );
+                bodies.push(obj);
+            }
+        }
+    });
+    Composite.add(engine.world, bodies)
+    
+}
+
+
+
+
+
 function locatePlayer(){
     w = render.options.width / 2
     h = render.options.height / 2
@@ -74,11 +134,11 @@ function locatePlayer(){
 
 function updateCamera(){
     loc = locatePlayer()
-    if (playerProperties.bools.camera.lockX && playerProperties.bools.camera.lockY){
+    if (GAME.player.bools.camera.lockX && GAME.player.bools.camera.lockY){
         render.context.setTransform(1, 0, 0, 1, -loc.x, -loc.y)
-    } else if (playerProperties.bools.camera.lockX){
+    } else if (GAME.player.bools.camera.lockX){
         render.context.setTransform(1, 0, 0, 1, -loc.x, 0)
-    } else if (playerProperties.bools.camera.lockY){
+    } else if (GAME.player.bools.camera.lockY){
         render.context.setTransform(1, 0, 0, 1, 0, -loc.y)
     }
 }
@@ -102,18 +162,22 @@ function keySetBoolean(e, fill) {
     switch (e.key) {
         case 'w':
         case 'ArrowUp':
-            playerProperties.bools.movement.up = fill;
+            GAME.player.bools.movement.up = fill;
             break;
         
         case 'a':
         case 'ArrowLeft':
-            playerProperties.bools.movement.left = fill;
+            GAME.player.bools.movement.left = fill;
             break;
 
         case 'd':
         case 'ArrowRight':
-            playerProperties.bools.movement.right = fill;
+            GAME.player.bools.movement.right = fill;
             break;
+
+        case 'm':
+            if (!fill) { bgMusic.mute(!bgMusic._muted); }
+            
     }
 }
 
@@ -125,11 +189,11 @@ class Player {
     remove;
     constructor(){
 
-        this.body = new Bodies.circle(playerProperties.spawnPoint.x, playerProperties.spawnPoint.y, playerProperties.a.radius, {
+        this.body = new Bodies.circle(GAME.player.spawnPoint.x, GAME.player.spawnPoint.y, GAME.player.a.radius, {
             render: {
-                fillStyle: playerProperties.a.color.fill,
-                strokeStyle: playerProperties.a.color.stroke,
-                lineWidth: playerProperties.a.color.strokeWidth
+                fillStyle: GAME.player.a.color.fill,
+                strokeStyle: GAME.player.a.color.stroke,
+                lineWidth: GAME.player.a.color.strokeWidth
             }
         })
 
@@ -141,14 +205,14 @@ class Player {
 
         this.move = () => {
             const { x, y } = playerNode.body.velocity;
-            if (playerProperties.bools.movement.up){
-                Body.setVelocity(playerNode.body, { x, y: -playerProperties.a.speed.y * 2 });
+            if (GAME.player.bools.movement.up && GAME.player.onGround){
+                Body.setVelocity(playerNode.body, { x, y: -GAME.player.a.speed.y * 2 });
             }
-            if (playerProperties.bools.movement.right){
-                Body.setVelocity(playerNode.body, { x: playerProperties.a.speed.x, y });
+            if (GAME.player.bools.movement.right){
+                Body.setVelocity(playerNode.body, { x: GAME.player.a.speed.x, y });
             }
-            if (playerProperties.bools.movement.left){
-                Body.setVelocity(playerNode.body, { x: -playerProperties.a.speed.x, y });
+            if (GAME.player.bools.movement.left){
+                Body.setVelocity(playerNode.body, { x: -GAME.player.a.speed.x, y });
             }
         }
 
@@ -176,19 +240,20 @@ class Player {
     }
 }
 
-
 function playerCollidedWith(otherBody) {
     console.log(otherBody)
     if (playerNode.body.position.y < otherBody.position.y){
-        playerProperties.onGround = true; // Player is on the ground
+        GAME.player.onGround = true; // Player is on the ground
     }
 }
 
 Render.run(render);
 Runner.run(runner, engine);
 setInterval(loop, 10)
+
 setTimeout(() => {
-    new Player();
+    loadMap(default_map)
+    new Player()
     currentSound = bgMusic.play()
 }, window.onload)
 
