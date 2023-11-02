@@ -67,8 +67,7 @@ const GAME = {
         src: "http://dm0qx8t0i9gc9.cloudfront.net/previews/audio/HNxwBHlArk43bm5tw/audioblocks-randon-nelson_pop_island-fever-full-120bpm-c_HgYts3S9n_NWM.mp3",
         volume: 1
     },
-    zoom: 1
-
+    zoom: 1,
 }
 
 var bgMusic = new Howl({
@@ -108,11 +107,11 @@ const default_map = {
             id: 2,
             isStatic: true,
             render: {
-                fillStyle: 'green',
-                strokeStyle: 'brown',
+                fillStyle: 'black',
+                strokeStyle: 'white',
                 lineWidth: 1,
             },
-            scale: {width: 80, height: 20}
+            scale: {width: 20, height: 10}
         },
     ],
     platforms: [
@@ -122,17 +121,23 @@ const default_map = {
         { id: 1, label: null, type: 'rect', x: 220, y: 100 },
         { id: 1, label: null, type: 'rect', x: 260, y: 100 },
         { id: 1, label: null, type: 'rect', x: 350, y: 100 },
-
-
-        
+        { id: 1, label: null, type: 'rect', x: 450, y: 200 },
+        { id: 1, label: null, type: 'rect', x: 500, y: 600 },
+        { id: 1, label: null, type: 'rect', x: 580, y: 600 },
+        { id: 2, label: '{ "collide":{"start":{"script": "GAME.Map.finish()"}} }', type: 'rect', x: 620, y: 600 },
     ],
+    events: {
+        finish: "new Player()"
+    }
 };
 GAME.Map = [];
+
 GAME.Map.load  = (map) => {
     GAME.Map.map = map;
     const blocks = map.blocks;
     const platforms = map.platforms;
     const bodies = []; 
+    GAME.Map.finish = new Function(map.events.finish)
 
     platforms.forEach((plat) => {
         if (plat.type === 'rect') {
@@ -145,6 +150,7 @@ GAME.Map.load  = (map) => {
                     block.scale.width,
                     block.scale.height,
                     {
+                        label: plat.label,
                         isStatic: block.isStatic,
                         render: block.render,
                     }
@@ -167,7 +173,7 @@ GAME.Map.load  = (map) => {
 
 
 
-function locatePlayer(){
+function player(){
     w = render.options.width / 2
     h = render.options.height / 2
     X = playerNode.body.position.x - w
@@ -176,7 +182,7 @@ function locatePlayer(){
 }
 
 function updateCamera(){
-    loc = locatePlayer()
+    loc = player()
     if (GAME.player.bools.camera.lockX && GAME.player.bools.camera.lockY){
         render.context.setTransform(GAME.zoom, 0, 0, GAME.zoom, -loc.x, -loc.y)
     } else if (GAME.player.bools.camera.lockX){
@@ -268,6 +274,20 @@ class Player {
     remove;
     body;
     aliveTime = new Stopwatch();
+    collide = (otherBody) => {
+        if (otherBody.label){
+            const Label = JSON.parse(otherBody.label)
+            console.log(Label)
+            if (Label.collide.start.script){
+                new Function(Label.collide.start.script)()
+            }
+        }
+        
+        if (playerNode.body.position.y < otherBody.position.y){
+            GAME.player.bools.onGround = true;
+        }
+
+    }
     constructor(){
         
         this.body = new Bodies.circle(GAME.player.spawnPoint.x, GAME.player.spawnPoint.y, GAME.player.a.radius, {
@@ -318,20 +338,13 @@ class Player {
         
                 if (pair.bodyA === playerNode.body) {
                     const otherBody = pair.bodyB; 
-                    playerCollidedWith(otherBody);
+                    this.collide(otherBody);
                 } else if (pair.bodyB === playerNode.body) {
                     const otherBody = pair.bodyA;
-                    playerCollidedWith(otherBody);
+                    this.collide(otherBody);
                 }
             }
         });
-    }
-}
-
-function playerCollidedWith(otherBody) {
-    
-    if (playerNode.body.position.y < otherBody.position.y){
-        GAME.player.bools.onGround = true;
     }
 }
 
