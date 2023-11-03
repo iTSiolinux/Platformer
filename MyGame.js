@@ -1,11 +1,4 @@
-const Engine = Matter.Engine,
-Events = Matter.Events,
-Render = Matter.Render,
-Runner = Matter.Runner,
-Bodies = Matter.Bodies,
-Body = Matter.Body,
-Composite = Matter.Composite,
-World = Matter.World;
+const { Engine, Events, Render, Runner, Bodies, Body, Composite, World, Mouse, MouseConstraint } = Matter;
 
 var width = window.innerWidth,
 height = window.innerHeight,
@@ -25,9 +18,23 @@ options: {
     width: width,
     height: height,
     wireframes: false,
-    background: "lightblue"
+    background: "lightblue",
+    pixelRatio: 1
 }
 });
+
+
+const mouseConstraint = MouseConstraint.create(engine, {
+        mouse: Mouse.create(render.canvas),
+        constraint: {
+            stiffness: 0.1,
+            render: { visible: false }
+          }
+    });
+
+
+
+World.add(engine.world, mouseConstraint);
 
 var playerNode = null
 
@@ -104,27 +111,19 @@ const default_map = {
             scale: {width: 40, height: 10}
         },
         {
-            id: 2,
+            id: 3,
             isStatic: true,
             render: {
-                fillStyle: 'black',
-                strokeStyle: 'white',
-                lineWidth: 1,
+                sprite: {
+                    texture: 'https://dabuttonfactory.com/button.png?t=Editor&f=Roboto-Bold&ts=26&tc=000&hp=29&vp=19&c=8&bgt=unicolored&bgc=ffff26',
+                  },
             },
-            scale: {width: 20, height: 10}
+            scale: {width: 128, height: 64}
         },
     ],
     platforms: [
         { id: 1, label: null, type: 'rect', x: 0, y: 0 },
-        { id: 1, label: null, type: 'rect', x: 80, y: 0 },
-        { id: 1, label: null, type: 'rect', x: 160, y: 20 },
-        { id: 1, label: null, type: 'rect', x: 220, y: 100 },
-        { id: 1, label: null, type: 'rect', x: 260, y: 100 },
-        { id: 1, label: null, type: 'rect', x: 350, y: 100 },
-        { id: 1, label: null, type: 'rect', x: 450, y: 200 },
-        { id: 1, label: null, type: 'rect', x: 500, y: 600 },
-        { id: 1, label: null, type: 'rect', x: 580, y: 600 },
-        { id: 2, label: '{ "collide":{"start":{"script": "GAME.Map.finish()"}} }', type: 'rect', x: 620, y: 600 },
+        {id: 3, label: null, type: 'rect', x: 128, y: 128}
     ],
     events: {
         finish: "new Player()"
@@ -173,7 +172,7 @@ GAME.Map.load  = (map) => {
 
 
 
-function player(){
+function locatePlayer(){
     w = render.options.width / 2
     h = render.options.height / 2
     X = playerNode.body.position.x - w
@@ -182,7 +181,7 @@ function player(){
 }
 
 function updateCamera(){
-    loc = player()
+    loc = locatePlayer()
     if (GAME.player.bools.camera.lockX && GAME.player.bools.camera.lockY){
         render.context.setTransform(GAME.zoom, 0, 0, GAME.zoom, -loc.x, -loc.y)
     } else if (GAME.player.bools.camera.lockX){
@@ -362,3 +361,6 @@ setTimeout(() => {
 window.addEventListener("resize", resizeWindow)
 window.addEventListener("keydown",(e) => {keySetBoolean(e, true)})
 window.addEventListener("keyup",(e) => {keySetBoolean(e, false)})
+Events.on(mouseConstraint, "mousedown", e => {
+    console.log(e)
+  })
