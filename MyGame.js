@@ -3,7 +3,7 @@ const { Engine, Events, Render, Runner, Bodies, Body, Composite, World, Mouse, M
 
 var width = window.innerWidth,
 height = window.innerHeight,
-scale = 10;
+scale = 16;
 
 var currentSound = null
 
@@ -156,16 +156,6 @@ const level1 = {
     },
     blocks: [
         {
-            id: 1,
-            isStatic: true,
-            render: {
-                fillStyle: 'green',
-                strokeStyle: 'brown',
-                lineWidth: 1
-            },
-            scale: {width: 40, height: 10}
-        },
-        {
             id: 2,
             isStatic: true,
             render: {
@@ -176,11 +166,29 @@ const level1 = {
                 }
             },
             scale: {width: 64, height: 64}
+        },
+        {
+            id: 1,
+            isStatic: true,
+            render: {
+                sprite: {
+                    texture: "media/grass_block.png",
+                    xScale: 0.5,
+                    yScale: 0.5
+                }
+            },
+            scale: {width: 32, height: 32}
         }
     ],
     platforms: [
-        { id: 1, label: null, type: 'rect', x: 0, y: 0 },
-        { id: 2, label: '{ "interact" : {"script": "GAME.Map.load(levels_map)"} }', type: 'rect', x: 128, y: 0 },
+        // { id: 2, label: '{ "interact" : {"script": "GAME.Map.load(levels_map)"} }', type: 'rect', x: 128, y: 0 },
+        { id: 1, label: null, type: 'rect', x: 0, y: 64 },
+        { id: 1, label: null, type: 'rect', x: 32, y: 64 },
+        { id: 1, label: null, type: 'rect', x: 64, y: 64 },
+
+        { id: 1, label: null, type: 'rect', x: 96, y: 64 },
+        { id: 1, label: null, type: 'rect', x: 129, y: 128 },
+
     ]
 };
 
@@ -356,11 +364,11 @@ class Player {
         if (otherBody.label){
             const Label = JSON.parse(otherBody.label)
 
-            if (Label.collide.script) {
+            if (Label.collide && Label.collide.script) {
                 new Function(Label.interact.collide.script)()
             }
 
-            if (Label.interact.script && GAME.player.bools.movement.interact) {
+            if (Label.interact && Label.interact.script && GAME.player.bools.movement.interact) {
                 new Function(Label.interact.script)()
             }
             
