@@ -7,16 +7,6 @@ scale = 10;
 
 var currentSound = null
 
-var LevelsJSON = fetch("level.json")
-  .then(response => {
-    return response.json();
-  })
-  .then(data => {
-    console.log(data);
-  })
-  .catch(error => {
-    console.error("Error fetching JSON:", error);
-  });
 
 const engine = Engine.create();
 const runner = Runner.create();
@@ -55,14 +45,14 @@ const GAME = {
     player: {
         a: {
             radius: scale,
-            color: {
-                fill: "red",
-                stroke: "black",
-                strokeWidth: 1
+            render: {
+                fillStyle: "red",
+                strokeStyle: "black",
+                lineWidth: 1
             },
             speed: {
                 x: 3,
-                y: 2
+                y: 3
             }
         },
         bools: {
@@ -95,20 +85,8 @@ var bgMusic = new Howl({
 
 const default_map = {
     PlayerAttributes: {
-        a: {
-            radius: scale,
-            color: {
-                fill: "red",
-                stroke: "black",
-                strokeWidth: 1
-            },
-            speed: {
-                x: 3,
-                y: 2
-            }
-        },
         spawnPoint: { x: 0, y: -40 },
-        void: {low: 1000, top: -100}
+        void: {low: 1000, top: -1000}
     },
     blocks: [
         {
@@ -134,12 +112,79 @@ const default_map = {
     ],
     platforms: [
         { id: 1, label: null, type: 'rect', x: 0, y: 0 },
-        { id: 3, label: '{ "interact" : {"script": "GAME.Map.map.events.levels()"} }' , type: 'rect', x: 128, y: 128}
-    ],
-    events: {
-        levels: () => {console.log('Hi')} //const Levels = ;GAME.Map.load()
-    }
+        { id: 3, label: '{ "interact" : {"script": "GAME.Map.load(levels_map)"} }' , type: 'rect', x: 128, y: 128}
+    ]
 };
+
+const levels_map = {
+    PlayerAttributes: {
+        spawnPoint: { x: 0, y: -40 },
+        void: {low: 1000, top: -1000}
+    },
+    blocks: [
+        {
+            id: 1,
+            isStatic: true,
+            render: {
+                fillStyle: 'green',
+                strokeStyle: 'brown',
+                lineWidth: 1
+            },
+            scale: {width: 2048, height: 10}
+        },
+        {
+            id: 2,
+            isStatic: true,
+            render: {
+                sprite: {
+                    texture: "https://dabuttonfactory.com/button.png?t=1&f=Open+Sans-Bold&ts=26&tc=fff&hp=27&vp=19&c=11&bgt=unicolored&bgc=15d798"
+                }
+            },
+            scale: {width: 64, height: 64}
+        }
+    ],
+    platforms: [
+        { id: 1, label: null, type: 'rect', x: 0, y: 0 },
+        { id: 2, label: '{ "interact" : {"script": "GAME.Map.load(level1)"} }', type: 'rect', x: 128, y: 0 },
+    ]
+};
+
+const level1 = {
+    PlayerAttributes: {
+        spawnPoint: { x: 0, y: -40 },
+        void: {low: 1000, top: -1000}
+    },
+    blocks: [
+        {
+            id: 1,
+            isStatic: true,
+            render: {
+                fillStyle: 'green',
+                strokeStyle: 'brown',
+                lineWidth: 1
+            },
+            scale: {width: 40, height: 10}
+        },
+        {
+            id: 2,
+            isStatic: true,
+            render: {
+                sprite: {
+                    texture: "https://cdn-icons-png.flaticon.com/512/10528/10528777.png",
+                    xScale: 0.125, 
+                    yScale: 0.125
+                }
+            },
+            scale: {width: 64, height: 64}
+        }
+    ],
+    platforms: [
+        { id: 1, label: null, type: 'rect', x: 0, y: 0 },
+        { id: 2, label: '{ "interact" : {"script": "GAME.Map.load(levels_map)"} }', type: 'rect', x: 128, y: 0 },
+    ]
+};
+
+
 GAME.Map = [];
 
 GAME.Map.load  = (map) => {
@@ -147,7 +192,6 @@ GAME.Map.load  = (map) => {
     const blocks = map.blocks;
     const platforms = map.platforms;
     const bodies = []; 
-    GAME.Map.finish = new Function(map.events.finish)
 
     platforms.forEach((plat) => {
         if (plat.type === 'rect') {
@@ -191,6 +235,18 @@ function locatePlayer(){
     return {x: X, y: Y}
 }
 
+function voidKiller(){
+    const bodiesToRemove = [];
+    const voidLow = GAME.Map.map.PlayerAttributes.void.low;
+    Composite.allBodies(engine.world).forEach((body) => {
+        if (body.position.y > voidLow) {
+            bodiesToRemove.push(body);
+        }
+    });
+
+    Composite.remove(engine.world, bodiesToRemove);
+}
+
 function updateCamera(){
     loc = locatePlayer()
     if (GAME.player.bools.camera.lockX && GAME.player.bools.camera.lockY){
@@ -212,10 +268,10 @@ function resizeWindow() {
 
 GAME.loop =  ()=>{
     if (playerNode){
-        playerNode.move()
-        playerNode.check4()
+        playerNode.update()
         updateCamera()
     }
+    voidKiller()
 }
 
 function keySetBoolean(e, fill) {
@@ -288,9 +344,21 @@ class Player {
     remove;
     body;
     aliveTime = new Stopwatch();
+    check4 = () => {
+        if (this.body.position.y < GAME.Map.map.PlayerAttributes.void.top){
+            new Player()
+        }
+        if (this.body.position.y > GAME.Map.map.PlayerAttributes.void.low){
+            new Player()
+        }
+    }
     collide = (otherBody) => {
         if (otherBody.label){
             const Label = JSON.parse(otherBody.label)
+
+            if (Label.collide.script) {
+                new Function(Label.interact.collide.script)()
+            }
 
             if (Label.interact.script && GAME.player.bools.movement.interact) {
                 new Function(Label.interact.script)()
@@ -307,11 +375,7 @@ class Player {
     constructor(){
         
         this.body = new Bodies.circle(GAME.player.spawnPoint.x, GAME.player.spawnPoint.y, GAME.player.a.radius, {
-            render: {
-                fillStyle: GAME.player.a.color.fill,
-                strokeStyle: GAME.player.a.color.stroke,
-                lineWidth: GAME.player.a.color.strokeWidth
-            },
+            render: GAME.player.a.render,
             label: "player"
         })
 
@@ -329,15 +393,6 @@ class Player {
             }
             if (GAME.player.bools.movement.left){
                 Body.setVelocity(playerNode.body, { x: -GAME.player.a.speed.x, y });
-            }
-        }
-
-        this.check4 = ()=> {
-            if (playerNode.body.position.y > GAME.Map.map.PlayerAttributes.void.low){
-                new Player()
-            }
-            if (playerNode.body.position.y < GAME.Map.map.PlayerAttributes.void.top){
-                new Player()
             }
         }
 
@@ -362,6 +417,10 @@ class Player {
             }
         });
     }
+    update = () => {
+        this.move()
+        this.check4()
+    }
 }
 
 Render.run(render);
@@ -378,6 +437,3 @@ setTimeout(() => {
 window.addEventListener("resize", resizeWindow)
 window.addEventListener("keydown",(e) => {keySetBoolean(e, true)})
 window.addEventListener("keyup",(e) => {keySetBoolean(e, false)})
-Events.on(mouseConstraint, "mousedown", e => {
-    console.log(e)
-  })
