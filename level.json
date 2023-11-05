@@ -26,6 +26,6 @@
         { "id": 3, "label": { "interact" : {"script": "GAME.Map.map.events.levels()"} }, "type": "rect", "x": 128, "y": 128}
     ],
     "events": {
-        "levels": "() => {console.log('Hi')} //const Levels = ;GAME.Map.load()"
+        "levels": "console.log('Hi'); //const Levels = ;GAME.Map.load()"
     }
 }
