@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" style="overflow: hidden;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TruitTile</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.js"></script>
+    <script id="destroy">
+        window.onload = () => {
+            const Script = document.createElement("script")
+            Script.type = "text/javascript"
+            Script.src = "MyGame.js" 
+            document.querySelector("head").appendChild(Script)
+            document.getElementById("destroy").remove()
+        }
+    </script>
+</head>
+<body>
+    
+</body>
+</html>
