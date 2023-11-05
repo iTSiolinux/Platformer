@@ -1,3 +1,4 @@
+
 const { Engine, Events, Render, Runner, Bodies, Body, Composite, World, Mouse, MouseConstraint } = Matter;
 
 var width = window.innerWidth,
@@ -6,7 +7,16 @@ scale = 10;
 
 var currentSound = null
 
-
+var LevelsJSON = fetch("level.json")
+  .then(response => {
+    return response.json();
+  })
+  .then(data => {
+    console.log(data);
+  })
+  .catch(error => {
+    console.error("Error fetching JSON:", error);
+  });
 
 const engine = Engine.create();
 const runner = Runner.create();
@@ -60,7 +70,8 @@ const GAME = {
                 up: false,
                 left: false,
                 right: false,
-                down: false
+                down: false,
+                interact: false
             },
             camera: {
                 lockX: true,
@@ -115,7 +126,7 @@ const default_map = {
             isStatic: true,
             render: {
                 sprite: {
-                    texture: 'https://dabuttonfactory.com/button.png?t=Editor&f=Roboto-Bold&ts=26&tc=000&hp=29&vp=19&c=8&bgt=unicolored&bgc=ffff26',
+                    texture: 'https://dabuttonfactory.com/button.png?t=Levels&f=Open+Sans-Bold&ts=26&tc=fff&hp=25&vp=19&c=11&bgt=unicolored&bgc=00f',
                   },
             },
             scale: {width: 128, height: 64}
@@ -123,10 +134,10 @@ const default_map = {
     ],
     platforms: [
         { id: 1, label: null, type: 'rect', x: 0, y: 0 },
-        {id: 3, label: null, type: 'rect', x: 128, y: 128}
+        { id: 3, label: '{ "interact" : {"script": "GAME.Map.map.events.levels()"} }' , type: 'rect', x: 128, y: 128}
     ],
     events: {
-        finish: "new Player()"
+        levels: () => {console.log('Hi')} //const Levels = ;GAME.Map.load()
     }
 };
 GAME.Map = [];
@@ -229,6 +240,10 @@ function keySetBoolean(e, fill) {
     if (e.key === 'm' && !fill) {
         bgMusic.mute(!bgMusic._muted);
     }
+
+    if (e.key == 'e') {
+        GAME.player.bools.movement.interact = fill
+    }
 }
 
 class Stopwatch {
@@ -276,10 +291,12 @@ class Player {
     collide = (otherBody) => {
         if (otherBody.label){
             const Label = JSON.parse(otherBody.label)
-            console.log(Label)
-            if (Label.collide.start.script){
-                new Function(Label.collide.start.script)()
+
+            if (Label.interact.script && GAME.player.bools.movement.interact) {
+                new Function(Label.interact.script)()
             }
+            
+            
         }
         
         if (playerNode.body.position.y < otherBody.position.y){
