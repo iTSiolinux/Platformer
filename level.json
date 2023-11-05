@@ -1,4 +1,8 @@
 {
+    "PlayerAttributes": {
+        "spawnPoint": { "x": 0, "y": -40 },
+        "void": {"low": 1000, "top": -100}
+    },
     "blocks": [
         {
             "id": 1,
@@ -23,7 +27,6 @@
     ],
     "platforms": [
         { "id": 1, "label": null, "type": "rect", "x": 0, "y": 0 },
-        { "id": 3, "label": { "interact" : {"script": "GAME.Map.map.events.levels()"} }, "type": "rect", "x": 128, "y": 128}
     ],
     "events": {
         "levels": "console.log('Hi'); //const Levels = ;GAME.Map.load()"
