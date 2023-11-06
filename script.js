@@ -46,9 +46,14 @@ const GAME = {
         a: {
             radius: scale,
             render: {
-                fillStyle: "red",
-                strokeStyle: "black",
-                lineWidth: 1
+                // fillStyle: "red",
+                // strokeStyle: "black",
+                // lineWidth: 1
+                sprite: {
+                    texture: "media/sci_fi/player/texture.png",
+                    xScale: 0.125,
+                    yScale: 0.125
+                }
             },
             speed: {
                 x: 3,
@@ -86,7 +91,8 @@ var bgMusic = new Howl({
 const default_map = {
     PlayerAttributes: {
         spawnPoint: { x: 0, y: -40 },
-        void: {low: 1000, top: -1000}
+        void: {low: 1000, top: -1000},
+        displayTimer: false
     },
     blocks: [
         {
@@ -119,7 +125,8 @@ const default_map = {
 const levels_map = {
     PlayerAttributes: {
         spawnPoint: { x: 0, y: -40 },
-        void: {low: 1000, top: -1000}
+        void: {low: 1000, top: -1000},
+        displayTimer: false
     },
     blocks: [
         {
@@ -152,7 +159,8 @@ const levels_map = {
 const level1 = {
     PlayerAttributes: {
         spawnPoint: { x: 0, y: -40 },
-        void: {low: 1000, top: -1000}
+        void: {low: 1000, top: -1000},
+        displayTimer: true
     },
     blocks: [
         {
@@ -160,35 +168,29 @@ const level1 = {
             isStatic: true,
             render: {
                 sprite: {
-                    texture: "https://cdn-icons-png.flaticon.com/512/10528/10528777.png",
-                    xScale: 0.125, 
-                    yScale: 0.125
+                    texture: "media/sci_fi/platforms/base_end_flag.png",
+                    xScale: 2,
+                    yScale: 2
                 }
             },
-            scale: {width: 64, height: 64}
+            scale: {width: 128, height: 32}
         },
         {
             id: 1,
             isStatic: true,
             render: {
                 sprite: {
-                    texture: "media/grass_block.png",
-                    xScale: 0.5,
-                    yScale: 0.5
+                    texture: "media/sci_fi/platforms/base.png",
                 }
             },
-            scale: {width: 32, height: 32}
+            scale: {width: 128, height: 32}
         }
     ],
     platforms: [
-        // { id: 2, label: '{ "interact" : {"script": "GAME.Map.load(levels_map)"} }', type: 'rect', x: 128, y: 0 },
         { id: 1, label: null, type: 'rect', x: 0, y: 64 },
-        { id: 1, label: null, type: 'rect', x: 32, y: 64 },
-        { id: 1, label: null, type: 'rect', x: 64, y: 64 },
+        { id: 1, label: null, type: 'rect', x: 128, y: 64 },
 
-        { id: 1, label: null, type: 'rect', x: 96, y: 64 },
-        { id: 1, label: null, type: 'rect', x: 129, y: 128 },
-
+        { id: 2, label: '{ "interact" : {"script": "GAME.Map.load(levels_map)"} }', type: 'rect', x: 256, y: 0 },
     ]
 };
 
@@ -283,10 +285,46 @@ function resizeWindow() {
     render.canvas.height = height;
 }
 
+function formatTimer(milliseconds) {
+    // Calculate hours, minutes, seconds, and milliseconds
+    const hours = Math.floor(milliseconds / 3600000);
+    milliseconds -= hours * 3600000;
+    const minutes = Math.floor(milliseconds / 60000);
+    milliseconds -= minutes * 60000;
+    const seconds = Math.floor(milliseconds / 1000);
+    milliseconds -= seconds * 1000;
+
+    // Ensure each component is two digits long
+    const format = (val) => (val < 10 ? '0' : '') + val;
+
+    // Initialize formattedTimer
+    var formattedTimer = '';
+
+    // Add hours, minutes, seconds, and milliseconds to the formattedTimer
+    if (hours > 0) {
+        formattedTimer += format(hours) + ' : ';
+    }
+    formattedTimer += format(minutes) + ' : ';
+    formattedTimer += format(seconds) + ' : ';
+    formattedTimer += format(milliseconds);
+
+    return formattedTimer;
+}
+
+
+
+
 GAME.loop =  ()=>{
     if (playerNode){
         playerNode.update()
         updateCamera()
+    }
+    if (GAME.Map.map.PlayerAttributes.displayTimer){
+        timer = document.getElementById("timer")
+        timer.innerText = `time: ${formatTimer(playerNode.aliveTime.getElapsedTime())}`
+    } else {
+        timer = document.getElementById("timer")
+        timer.innerText = ``
     }
     voidKiller()
 }
@@ -360,7 +398,7 @@ class Player {
     move;
     remove;
     body;
-    aliveTime = new Stopwatch();
+    aliveTime = new Stopwatch(1);
     check4 = () => {
         if (this.body.position.y < GAME.Map.map.PlayerAttributes.void.top){
             new Player()
@@ -374,7 +412,7 @@ class Player {
             const Label = JSON.parse(otherBody.label)
 
             if (Label.collide && Label.collide.script) {
-                new Function(Label.interact.collide.script)()
+                new Function(Label.collide.script)()
             }
 
             if (Label.interact && Label.interact.script && GAME.player.bools.movement.interact) {
