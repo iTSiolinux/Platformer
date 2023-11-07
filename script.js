@@ -3,24 +3,58 @@ const { Engine, Events, Render, Runner, Bodies, Body, Composite, World, Mouse, M
 
 var width = window.innerWidth,
 height = window.innerHeight,
-scale = 16;
+scale = 16,
+data = Cookie.get("data");
+var currentSound = null;
 
-var currentSound = null
+if (data){
+
+}
+
+
+// menu behavor
+const menu = document.getElementById('ui');
+
+// Add an event listener to the menu for hovering (so it doesn't collapse when you hover over it)
+menu.addEventListener('mouseover', () => {
+    menu.style.width = '150px'; // Expand the menu width
+});
+
+// Add an event listener to the menu for leaving the menu
+menu.addEventListener('mouseout', () => {
+    menu.style.width = '0'; // Collapse the menu width
+});
+
 
 
 const engine = Engine.create();
 const runner = Runner.create();
 
-const render = Render.create({
-element: document.body,
-engine: engine,
-options: {
-    width: width,
-    height: height,
+var renderOptions =  {
+    width: 0,
+    height: 0,
     wireframes: false,
     background: "lightblue",
     pixelRatio: 1
 }
+
+
+if (window.innerHeight < 512 || window.innerWidth < 256) {
+    const message = "Sorry, your window is too small to display the content properly. Please resize your window for a better experience.";
+    window.alert(message);
+    window.location.reload()
+} else {
+    renderOptions.width = window.innerWidth * 0.95
+    renderOptions.height = window.innerHeight * 0.95
+
+}
+  
+
+
+const render = Render.create({
+    element: document.body,
+    engine: engine,
+    options: renderOptions
 });
 
 
@@ -56,8 +90,8 @@ const GAME = {
                 }
             },
             speed: {
-                x: 3,
-                y: 3
+                x: 4,
+                y: 4
             }
         },
         bools: {
@@ -85,6 +119,7 @@ const GAME = {
 
 var bgMusic = new Howl({
     src: [GAME.bgMusic.src],
+    loop: true,
     volume: GAME.bgMusic.volume
 });
 
@@ -123,6 +158,7 @@ const default_map = {
 };
 
 const levels_map = {
+    leaveMap: default_map,
     PlayerAttributes: {
         spawnPoint: { x: 0, y: -40 },
         void: {low: 1000, top: -1000},
@@ -133,11 +169,11 @@ const levels_map = {
             id: 1,
             isStatic: true,
             render: {
-                fillStyle: 'green',
-                strokeStyle: 'brown',
-                lineWidth: 1
+                sprite: {
+                    texture: "media/sci_fi/platforms/base.png",
+                }
             },
-            scale: {width: 2048, height: 10}
+            scale: {width: 128, height: 32}
         },
         {
             id: 2,
@@ -157,6 +193,7 @@ const levels_map = {
 };
 
 const level1 = {
+    leaveMap: levels_map,
     PlayerAttributes: {
         spawnPoint: { x: 0, y: -40 },
         void: {low: 1000, top: -1000},
@@ -190,7 +227,12 @@ const level1 = {
         { id: 1, label: null, type: 'rect', x: 0, y: 64 },
         { id: 1, label: null, type: 'rect', x: 128, y: 64 },
 
-        { id: 2, label: '{ "interact" : {"script": "GAME.Map.load(levels_map)"} }', type: 'rect', x: 256, y: 0 },
+        { id: 1, label: null, type: 'rect', x: 384, y: 128 },
+
+        { id: 1, label: null, type: 'rect', x: 640, y: 256 },
+
+
+        { id: 2, label: '{ "interact" : {"script": "GAME.Map.load(levels_map)"} }', type: 'rect', x: 896, y: 192 },
     ]
 };
 
@@ -311,8 +353,17 @@ function formatTimer(milliseconds) {
     return formattedTimer;
 }
 
+function home(){
+    GAME.Map.load(default_map)
+}
 
-
+function leave(){
+    if (GAME.Map.map.leaveMap){
+        GAME.Map.load(GAME.Map.map.leaveMap)
+    } else if (GAME.Map.map != default_map){
+        GAME.Map.load(default_map)
+    }
+}
 
 GAME.loop =  ()=>{
     if (playerNode){
@@ -489,6 +540,6 @@ setTimeout(() => {
 }, window.onload)
 
 // events handlers:
-window.addEventListener("resize", resizeWindow)
+// window.addEventListener("resize", resizeWindow)
 window.addEventListener("keydown",(e) => {keySetBoolean(e, true)})
 window.addEventListener("keyup",(e) => {keySetBoolean(e, false)})
