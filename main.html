@@ -19,19 +19,6 @@
             document.querySelector("head").appendChild(Script)
             document.getElementById("destroy").remove()
         }
-
-        const Cookie = []
-        Cookie.set = (cookieName, cookieData) => { document.cookie = `${cookieName}=${JSON.stringify(cookieData)}` }
-        Cookie.get = (cookieName) => {    
-            const cookies = document.cookie.split(';');
-            for (const cookie of cookies) {
-                const [name, value] = cookie.trim().split('=');
-                if (name === cookieName) {
-                    return JSON.parse(value);
-                }
-            }
-            return null;
-        }
     </script>
     <style>
         html, body {
@@ -39,18 +26,15 @@
             height: 100%;
             display: grid;
         }
-
         p#timer {
             position: absolute;
             font-family: 'Agbalumo';
 
         }
-
         canvas {
             justify-self: center;
             align-self: center;
         }
-
         /* the side gui rules: */
         ul#ui {
             position: absolute;
@@ -66,13 +50,11 @@
             flex-direction: column;
             align-items: flex-start; 
         }
-
         ul#ui h1{
             transform: rotate(90deg); /* Rotate the h1 element */
             transform-origin: left top; /* Rotate around the top-right corner */
             white-space: nowrap;
         }
-
         ul#ui a{
             background-size: contain;
             background-repeat: no-repeat;
@@ -83,22 +65,18 @@
             padding: 4px;
             margin-bottom: 4px;
         }
-
         ul#ui a:hover {
             transform: scale(1.1); /* Scale the menu items on hover */
         }
-
-
     </style>
 </head>
 <body>
     <p id="timer"></p> <!-- ignore the timer -->
-
-    <ul id="ui"> <!-- display the menu while hovering the gear or everywhere in the menu. else, collaspe -->
+    <ul id="ui" mouseover="menu.style.width = '150px';" mouseout="menu.style.width = '0';"> <!-- display the menu while hovering the gear or everywhere in the menu. else, collaspe -->
         <!-- the items of this list goes here in <a></a> elements! -->
         <h1>Menu</h1>
-        <a onclick="home()">Home</a>
-        <a onclick="leave()">Leave</a>
+        <a onclick="GAME.Map.load(default_map)">Home</a>
+        <a onclick="if (GAME.Map.map.leaveMap){GAME.Map.load(GAME.Map.map.leaveMap)} else if (GAME.Map.map != default_map){GAME.Map.load(default_map)}">Leave</a>
     </ul>
 </body>
 </html>
